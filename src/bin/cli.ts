@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import Conf from 'conf';
 import { StreamPlayer } from '../player/StreamPlayer.js';
+import { RadioREPL } from '../repl/RadioREPL.js';
 import { stations, getStationById, getStationByName, getDefaultStation } from '../config/stations.js';
 import {
   formatStation,
@@ -208,15 +209,28 @@ program
     }
   });
 
-process.on('SIGINT', async () => {
-  console.log('\n' + formatInfo('Shutting down...'));
-  await player.stop();
-  process.exit(0);
-});
+// If no arguments provided, launch interactive REPL mode
+if (process.argv.length === 2) {
+  const ffmpegInstalled = await checkFFmpeg();
+  if (!ffmpegInstalled) {
+    console.log(formatError('ffplay not found. Please install ffmpeg: https://ffmpeg.org/download.html'));
+    process.exit(1);
+  }
 
-process.on('SIGTERM', async () => {
-  await player.stop();
-  process.exit(0);
-});
+  const repl = new RadioREPL(player, config);
+  repl.start();
+} else {
+  // Normal CLI mode with commands
+  process.on('SIGINT', async () => {
+    console.log('\n' + formatInfo('Shutting down...'));
+    await player.stop();
+    process.exit(0);
+  });
 
-program.parse();
+  process.on('SIGTERM', async () => {
+    await player.stop();
+    process.exit(0);
+  });
+
+  program.parse();
+}
