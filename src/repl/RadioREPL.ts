@@ -95,15 +95,26 @@ export class RadioREPL {
   }
 
   private showWelcome(): void {
-    console.log(chalk.cyan.bold('\n╔══════════════════════════════════════╗'));
-    console.log(chalk.cyan.bold('║     🎵 LOFI RADIO TERMINAL 🎵        ║'));
-    console.log(chalk.cyan.bold('╚══════════════════════════════════════╝\n'));
+    const boxWidth = 56;
+    const topBorder = '╔' + '═'.repeat(boxWidth) + '╗';
+    const bottomBorder = '╚' + '═'.repeat(boxWidth) + '╝';
+
+    const title = '🎵 LOFI RADIO TERMINAL 🎵';
+    const author = 'Made by AMIGOSKAZZ';
+
+    const titlePadding = Math.floor((boxWidth - title.length) / 2);
+    const authorPadding = Math.floor((boxWidth - author.length) / 2);
+
+    console.log(chalk.cyan.bold('\n' + topBorder));
+    console.log(chalk.cyan.bold('║' + ' '.repeat(titlePadding) + title + ' '.repeat(boxWidth - titlePadding - title.length) + '║'));
+    console.log(chalk.cyan.bold('║' + ' '.repeat(authorPadding) + author + ' '.repeat(boxWidth - authorPadding - author.length) + '║'));
+    console.log(chalk.cyan.bold(bottomBorder + '\n'));
   }
 
   private showStatusBar(): void {
-    console.log(chalk.dim('─'.repeat(40)));
+    console.log(chalk.dim('─'.repeat(58)));
     console.log(chalk.dim(`Version ${this.version} | Type 'help' for commands | 'exit' to quit`));
-    console.log(chalk.dim('─'.repeat(40)));
+    console.log(chalk.dim('─'.repeat(58)));
     console.log();
   }
 
