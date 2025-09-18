@@ -1,0 +1,44 @@
+{
+  "name": "lofi-radio",
+  "version": "1.0.0",
+  "description": "A minimalist lofi radio CLI player for terminal",
+  "type": "module",
+  "main": "dist/bin/cli.js",
+  "bin": {
+    "lofi": "./dist/bin/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/bin/cli.js",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "lofi",
+    "radio",
+    "cli",
+    "music",
+    "streaming",
+    "terminal"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.1",
+    "conf": "^14.0.0",
+    "inquirer": "^12.9.6",
+    "node-fetch": "^3.3.2",
+    "ora": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/inquirer": "^9.0.7",
+    "typescript": "^5.3.3"
+  }
+}
