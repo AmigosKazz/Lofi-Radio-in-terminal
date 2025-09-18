@@ -42,7 +42,7 @@ player.on('playing', (station: Station) => {
   console.log(chalk.dim(`   Quality: ${station.quality}`));
   console.log(chalk.dim(`   Volume: ${player.getState().volume}%`));
   console.log('');
-  console.log(chalk.dim('   Press Ctrl+C to stop or use "lofi stop"'));
+  console.log(chalk.dim('   Press Ctrl+C to stop or use "radio stop"'));
 });
 
 player.on('stopped', () => {
@@ -61,7 +61,7 @@ player.on('reconnecting', (attempt: number) => {
 });
 
 program
-  .name('lofi')
+  .name('radio')
   .description('A minimalist lofi radio CLI player')
   .version('1.0.0');
 
@@ -82,7 +82,7 @@ program
       selectedStation = getStationById(stationInput) || getStationByName(stationInput);
       if (!selectedStation) {
         console.log(formatError(`Station "${stationInput}" not found`));
-        console.log(formatInfo('Use "lofi stations" to see available stations'));
+        console.log(formatInfo('Use "radio stations" to see available stations'));
         process.exit(1);
       }
     } else {
