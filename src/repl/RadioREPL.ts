@@ -47,7 +47,6 @@ export class RadioREPL {
     }
 
     private setupCommandHistory(): void {
-        // Use readline's built-in history management
         this.rl.on('line', (line: string) => {
             if (line.trim() && line !== this.commandHistory[this.commandHistory.length - 1]) {
                 this.commandHistory.push(line.trim());
@@ -58,7 +57,6 @@ export class RadioREPL {
             this.historyIndex = -1;
         });
 
-        // Handle arrow keys using readline's built-in handlers
         if (process.stdin.isTTY) {
             process.stdin.on('keypress', (_char, key) => {
                 if (key && !this.rl.line) {
@@ -155,7 +153,6 @@ export class RadioREPL {
             process.exit(0);
         });
 
-        // Handle Ctrl+C gracefully
         process.on('SIGINT', () => {
             console.log('\n' + chalk.yellow('Use "exit" command or Ctrl+D to quit safely'));
             this.showPrompt();
@@ -165,7 +162,6 @@ export class RadioREPL {
     private showWelcome(): void {
         const boxWidth = 58;
 
-        // Beautiful gradient border
         const topBorder = '╭' + '─'.repeat(boxWidth) + '╮';
         const bottomBorder = '╰' + '─'.repeat(boxWidth) + '╯';
 
@@ -177,7 +173,6 @@ export class RadioREPL {
         const titleLine = '│' + ' '.repeat(titlePadding) + title + ' '.repeat(boxWidth - titlePadding - title.length) + '│';
         console.log(chalk.cyan(titleLine));
 
-        // Empty line
         console.log(chalk.cyan('│' + ' '.repeat(boxWidth) + '│'));
 
         const author = 'Made by AMIGOSKAZZ';
@@ -206,7 +201,6 @@ export class RadioREPL {
     }
 
     private showPrompt(): void {
-        // Create a beautiful prompt similar to Claude
         const promptPrefix = this.isPlaying && this.currentStation
             ? chalk.green('♪')
             : chalk.dim('○');
@@ -217,7 +211,6 @@ export class RadioREPL {
 
         const prompt = `${promptPrefix}${stationName} ${chalk.cyan('▶')} `;
 
-        // Clear any existing prompt and set new one
         this.rl.setPrompt(prompt);
         this.rl.prompt();
     }
@@ -232,7 +225,6 @@ export class RadioREPL {
             console.log(chalk.dim(`   Quality: ${this.currentStation.quality} | Volume: ${this.player.getState().volume}%`));
             console.log('');
 
-            // Add a subtle separator
             console.log(chalk.dim('─'.repeat(50)));
             console.log('');
         }
@@ -243,7 +235,6 @@ export class RadioREPL {
         const command = parts[0];
         const args = parts.slice(1);
 
-        // Show typing indicator for longer operations
         const isLongOperation = ['play', 'p'].includes(command);
         let typingIndicator: NodeJS.Timeout | null = null;
 
@@ -311,7 +302,7 @@ export class RadioREPL {
         } finally {
             if (typingIndicator) {
                 clearTimeout(typingIndicator);
-                process.stdout.write('\r\x1b[K'); // Clear the typing indicator
+                process.stdout.write('\r\x1b[K');
             }
             this.showPrompt();
         }
@@ -336,7 +327,6 @@ export class RadioREPL {
         if (stationInput) {
             selectedStation = getStationById(stationInput) || getStationByName(stationInput);
             if (!selectedStation) {
-                // Try to match by number
                 const stationIndex = parseInt(stationInput, 10) - 1;
                 if (!isNaN(stationIndex) && stationIndex >= 0 && stationIndex < stations.length) {
                     selectedStation = stations[stationIndex];
@@ -475,7 +465,7 @@ export class RadioREPL {
         console.log(chalk.bgCyan.black(' COMMAND HISTORY '));
         console.log('');
 
-        const recentCommands = this.commandHistory.slice(-10); // Show last 10 commands
+        const recentCommands = this.commandHistory.slice(-10);
         recentCommands.forEach((cmd, index) => {
             console.log(`${chalk.dim((index + 1).toString().padStart(2))} ${chalk.yellow(cmd)}`);
         });
@@ -519,27 +509,19 @@ export class RadioREPL {
     }
 
     private enableNonBlockingInput(): void {
-        // Enable keypress events for arrow keys without blocking normal input
         if (process.stdin.isTTY) {
-            // Use readline's emitKeypressEvents for proper key handling
             readline.emitKeypressEvents(process.stdin, this.rl);
 
-            // Keep the terminal in normal mode for proper input display
-            // We don't set raw mode permanently - readline handles this
             process.stdin.resume();
         }
 
-        // Handle SIGINT gracefully
         this.rl.on('SIGINT', () => {
             console.log('\n' + chalk.yellow('Tip: Use "stop" to stop playback, "exit" to quit'));
             this.showPrompt();
         });
 
-        // Refresh prompt periodically for status updates
         setInterval(() => {
-            // Only refresh if no active input and terminal is available
             if (!this.rl.line && this.rl.terminal) {
-                // Preserve cursor position and only update the prompt
                 this.rl.prompt(true);
             }
         }, 2000);

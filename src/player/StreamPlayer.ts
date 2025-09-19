@@ -40,7 +40,6 @@ export class StreamPlayer extends EventEmitter {
           station.url
         ];
 
-        // On Windows, we need to use shell: true for ffplay to work properly
         this.state.process = spawn('ffplay', args, {
           stdio: ['ignore', 'ignore', 'pipe'],
           shell: process.platform === 'win32'

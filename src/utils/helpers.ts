@@ -29,7 +29,6 @@ export const formatControl = (message: string): string => {
     return `${chalk.yellow('⏹️')} ${chalk.yellow(message)}`;
 };
 
-// Enhanced spinner with custom styling
 export const createSpinner = (text: string): any => {
     return ora({
         text: chalk.cyan(text),
@@ -41,7 +40,6 @@ export const createSpinner = (text: string): any => {
     });
 };
 
-// Volume validation
 export const validateVolume = (input: string): number | null => {
     const volume = parseInt(input, 10);
     if (isNaN(volume) || volume < 0 || volume > 100) {
@@ -50,12 +48,10 @@ export const validateVolume = (input: string): number | null => {
     return volume;
 };
 
-// Enhanced console clearing
 export const clearConsole = (): void => {
-    process.stdout.write('\x1Bc'); // Clear screen and move cursor to top-left
+    process.stdout.write('\x1Bc');
 };
 
-// Check if ffmpeg is installed
 export const checkFFmpeg = async (): Promise<boolean> => {
     return new Promise((resolve) => {
         const process = spawn('ffplay', ['-version'], {
@@ -73,7 +69,6 @@ export const checkFFmpeg = async (): Promise<boolean> => {
     });
 };
 
-// Create a beautiful progress bar
 export const createProgressBar = (current: number, total: number, width: number = 30): string => {
     const percentage = Math.min(current / total, 1);
     const filledWidth = Math.floor(percentage * width);
@@ -86,7 +81,6 @@ export const createProgressBar = (current: number, total: number, width: number 
     return `${chalk.green(filled)}${chalk.dim(empty)} ${chalk.yellow(percent + '%')}`;
 };
 
-// Animated text effect
 export const typeWriter = async (text: string, delay: number = 50): Promise<void> => {
     for (let i = 0; i < text.length; i++) {
         process.stdout.write(text[i]);
@@ -95,7 +89,6 @@ export const typeWriter = async (text: string, delay: number = 50): Promise<void
     process.stdout.write('\n');
 };
 
-// Create a box around text
 export const createBox = (text: string, padding: number = 2): string => {
     const lines = text.split('\n');
     const maxLength = Math.max(...lines.map(line => line.length));
@@ -114,7 +107,6 @@ export const createBox = (text: string, padding: number = 2): string => {
     return boxedLines.join('\n');
 };
 
-// Format uptime nicely
 export const formatUptime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -129,7 +121,6 @@ export const formatUptime = (seconds: number): string => {
     }
 };
 
-// Create a notification-style message
 export const createNotification = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info'): string => {
     const icons = {
         info: '🔔',
@@ -151,7 +142,6 @@ export const createNotification = (title: string, message: string, type: 'info' 
     return `${icon} ${color.bold(title)}\n   ${color(message)}`;
 };
 
-// Parse and format stream metadata
 export const formatMetadata = (metadata: any): string => {
     const parts = [];
 
@@ -168,7 +158,6 @@ export const formatMetadata = (metadata: any): string => {
     return parts.join(' ');
 };
 
-// Create a live activity indicator
 export class ActivityIndicator {
     private frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
     private interval: NodeJS.Timeout | null = null;
@@ -191,16 +180,14 @@ export class ActivityIndicator {
             clearInterval(this.interval);
             this.interval = null;
         }
-        process.stdout.write('\r\x1b[K'); // Clear line
+        process.stdout.write('\r\x1b[K');
         if (finalMessage) {
             console.log(finalMessage);
         }
     }
 }
 
-// Gradient text effect
 export const createGradient = (text: string): string => {
-    // Simple gradient simulation with chalk
     const colors = [chalk.red, chalk.yellow, chalk.green, chalk.cyan, chalk.blue, chalk.magenta];
     const chars = text.split('');
 
