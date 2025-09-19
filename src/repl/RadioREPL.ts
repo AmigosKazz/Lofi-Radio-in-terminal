@@ -35,46 +35,56 @@ export class RadioREPL {
             input: process.stdin,
             output: process.stdout,
             prompt: '',
-            completer: this.completer.bind(this)
+            completer: this.completer.bind(this),
+            terminal: true,
+            historySize: 50
         });
 
-        this.refreshPrompt();
         this.setupPlayerListeners();
-        this.setupAdvancedInput();
+        this.setupCommandHistory();
         this.enableNonBlockingInput();
 
     }
 
-    private refreshPrompt() : void {
-        setInterval(() => {
-            if (this.rl.terminal && !this.rl.line) {
-                this.rl.prompt(true);
-            }
-        }, 2000);
-    }
-
-    private setupAdvancedInput(): void {
-        this.rl.on('keypress', (_char, key) => {
-            if (key) {
-                switch (key.name) {
-                    case 'up':
-                        this.navigateHistory('up');
-                        break;
-                    case 'down':
-                        this.navigateHistory('down');
-                        break;
-                    case 'tab':
-                        // Tab completion is handled by the completer
-                        break;
+    private setupCommandHistory(): void {
+        // Use readline's built-in history management
+        this.rl.on('line', (line: string) => {
+            if (line.trim() && line !== this.commandHistory[this.commandHistory.length - 1]) {
+                this.commandHistory.push(line.trim());
+                if (this.commandHistory.length > 50) {
+                    this.commandHistory.shift();
                 }
             }
+            this.historyIndex = -1;
         });
 
-        // Enable keypress events
-        if (process.stdin.setRawMode) {
-            process.stdin.setRawMode(true);
+        // Handle arrow keys using readline's built-in handlers
+        if (process.stdin.isTTY) {
+            process.stdin.on('keypress', (_char, key) => {
+                if (key && !this.rl.line) {
+                    if (key.name === 'up' && this.historyIndex < this.commandHistory.length - 1) {
+                        this.historyIndex++;
+                        const cmd = this.commandHistory[this.commandHistory.length - 1 - this.historyIndex];
+                        if (cmd) {
+                            this.rl.write(null, { ctrl: true, name: 'u' });
+                            this.rl.write(cmd);
+                        }
+                    } else if (key.name === 'down') {
+                        if (this.historyIndex > 0) {
+                            this.historyIndex--;
+                            const cmd = this.commandHistory[this.commandHistory.length - 1 - this.historyIndex];
+                            this.rl.write(null, { ctrl: true, name: 'u' });
+                            this.rl.write(cmd);
+                        } else if (this.historyIndex === 0) {
+                            this.historyIndex = -1;
+                            this.rl.write(null, { ctrl: true, name: 'u' });
+                        }
+                    }
+                }
+            });
         }
     }
+
 
     private completer(line: string): [string[], string] {
         const commands = [
@@ -89,21 +99,6 @@ export class RadioREPL {
         return [hits.length ? hits : allCompletions, line];
     }
 
-    private navigateHistory(direction: 'up' | 'down'): void {
-        if (this.commandHistory.length === 0) return;
-
-        if (direction === 'up' && this.historyIndex < this.commandHistory.length - 1) {
-            this.historyIndex++;
-        } else if (direction === 'down' && this.historyIndex > -1) {
-            this.historyIndex--;
-        }
-
-        if (this.historyIndex >= 0) {
-            const command = this.commandHistory[this.commandHistory.length - 1 - this.historyIndex];
-            this.rl.write(null, { ctrl: true, name: 'u' }); // Clear line
-            this.rl.write(command);
-        }
-    }
 
     private setupPlayerListeners(): void {
         this.player.on('playing', (station: Station) => {
@@ -151,15 +146,6 @@ export class RadioREPL {
                 return;
             }
 
-            // Add to history (avoid duplicates)
-            if (command !== this.commandHistory[this.commandHistory.length - 1]) {
-                this.commandHistory.push(command);
-                if (this.commandHistory.length > 50) { // Keep only last 50 commands
-                    this.commandHistory.shift();
-                }
-            }
-            this.historyIndex = -1;
-
             await this.handleCommand(command.toLowerCase());
         });
 
@@ -186,7 +172,6 @@ export class RadioREPL {
         console.log('');
         console.log(chalk.cyan(topBorder));
 
-        // Title with gradient effect
         const title = '🎵 LOFI RADIO TERMINAL 🎵';
         const titlePadding = Math.floor((boxWidth - title.length) / 2);
         const titleLine = '│' + ' '.repeat(titlePadding) + title + ' '.repeat(boxWidth - titlePadding - title.length) + '│';
@@ -195,7 +180,6 @@ export class RadioREPL {
         // Empty line
         console.log(chalk.cyan('│' + ' '.repeat(boxWidth) + '│'));
 
-        // Author line
         const author = 'Made by AMIGOSKAZZ';
         const authorPadding = Math.floor((boxWidth - author.length) / 2);
         const authorLine = '│' + ' '.repeat(authorPadding) + author + ' '.repeat(boxWidth - authorPadding - author.length) + '│';
@@ -535,21 +519,29 @@ export class RadioREPL {
     }
 
     private enableNonBlockingInput(): void {
+        // Enable keypress events for arrow keys without blocking normal input
         if (process.stdin.isTTY) {
-            process.stdin.setRawMode(false)
+            // Use readline's emitKeypressEvents for proper key handling
+            readline.emitKeypressEvents(process.stdin, this.rl);
+
+            // Keep the terminal in normal mode for proper input display
+            // We don't set raw mode permanently - readline handles this
+            process.stdin.resume();
         }
 
+        // Handle SIGINT gracefully
         this.rl.on('SIGINT', () => {
-            // Don't exit on Ctrl+C, just show help
             console.log('\n' + chalk.yellow('Tip: Use "stop" to stop playback, "exit" to quit'));
             this.showPrompt();
         });
 
+        // Refresh prompt periodically for status updates
         setInterval(() => {
+            // Only refresh if no active input and terminal is available
             if (!this.rl.line && this.rl.terminal) {
-                // Only refresh prompt if there's no active input
+                // Preserve cursor position and only update the prompt
                 this.rl.prompt(true);
             }
-        }, 1000);
+        }, 2000);
     }
 }
