@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import Conf from 'conf';
 import { StreamPlayer } from '../player/StreamPlayer.js';
+import { RadioREPL } from '../repl/RadioREPL.js';
 import { stations, getStationById, getStationByName, getDefaultStation } from '../config/stations.js';
 import {
   formatStation,
@@ -42,7 +43,7 @@ player.on('playing', (station: Station) => {
   console.log(chalk.dim(`   Quality: ${station.quality}`));
   console.log(chalk.dim(`   Volume: ${player.getState().volume}%`));
   console.log('');
-  console.log(chalk.dim('   Press Ctrl+C to stop or use "lofi stop"'));
+  console.log(chalk.dim('   Press Ctrl+C to stop or use "radio stop"'));
 });
 
 player.on('stopped', () => {
@@ -61,7 +62,7 @@ player.on('reconnecting', (attempt: number) => {
 });
 
 program
-  .name('lofi')
+  .name('radio')
   .description('A minimalist lofi radio CLI player')
   .version('1.0.0');
 
@@ -82,7 +83,7 @@ program
       selectedStation = getStationById(stationInput) || getStationByName(stationInput);
       if (!selectedStation) {
         console.log(formatError(`Station "${stationInput}" not found`));
-        console.log(formatInfo('Use "lofi stations" to see available stations'));
+        console.log(formatInfo('Use "radio stations" to see available stations'));
         process.exit(1);
       }
     } else {
@@ -208,15 +209,28 @@ program
     }
   });
 
-process.on('SIGINT', async () => {
-  console.log('\n' + formatInfo('Shutting down...'));
-  await player.stop();
-  process.exit(0);
-});
+// If no arguments provided, launch interactive REPL mode
+if (process.argv.length === 2) {
+  const ffmpegInstalled = await checkFFmpeg();
+  if (!ffmpegInstalled) {
+    console.log(formatError('ffplay not found. Please install ffmpeg: https://ffmpeg.org/download.html'));
+    process.exit(1);
+  }
 
-process.on('SIGTERM', async () => {
-  await player.stop();
-  process.exit(0);
-});
+  const repl = new RadioREPL(player, config);
+  repl.start();
+} else {
+  // Normal CLI mode with commands
+  process.on('SIGINT', async () => {
+    console.log('\n' + formatInfo('Shutting down...'));
+    await player.stop();
+    process.exit(0);
+  });
 
-program.parse();
+  process.on('SIGTERM', async () => {
+    await player.stop();
+    process.exit(0);
+  });
+
+  program.parse();
+}

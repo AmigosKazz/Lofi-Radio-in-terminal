@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/bin/cli.js",
   "bin": {
-    "lofi": "./dist/bin/cli.js"
+    "radio": "./dist/bin/cli.js"
   },
   "scripts": {
     "build": "tsc",
